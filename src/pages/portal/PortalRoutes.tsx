@@ -31,6 +31,7 @@ import { PortalAuth } from '@/pages/portal/PortalAuth';
 import { PortalTerms } from '@/pages/portal/PortalTerms';
 import { PortalUnauthorized } from '@/pages/portal/PortalUnauthorized';
 import { FoundryLanding } from '@/pages/public/FoundryLanding';
+import ProductOverview from '@/pages/public/ProductOverview';
 
 // Admin Layout and pages
 import { AdminLayout } from '@/components/portal/admin/AdminLayout';
@@ -197,8 +198,15 @@ export function PortalRoutes() {
     );
   }
   
-  // If no portal user and we're on a portal route, show auth
-  if (isPortalRoute && !isLoading && !portalUser) {
+  // Public paths that don't require authentication
+  const publicPaths = ['/product-overview', '/foundry', '/terms', '/privacy', '/unauthorized'];
+  const pathname = window.location.pathname.replace(/^\/portal/, '');
+  const isPublicPath = publicPaths.some(p =>
+    pathname === p || pathname.startsWith(p + '/')
+  );
+
+  // If no portal user and we're on a portal route, show auth (unless it's a public path)
+  if (isPortalRoute && !isLoading && !portalUser && !isPublicPath) {
     // For subdomain, show auth page directly instead of redirecting
     // This avoids potential redirect loops
     if (isSubdomain) {
@@ -228,6 +236,9 @@ export function PortalRoutes() {
         
         {/* Foundry landing page - public marketing page */}
         <Route path="/foundry" element={<FoundryLanding />} />
+
+        {/* Product overview - public, shareable page (no auth required) */}
+        <Route path="/product-overview" element={<ProductOverview />} />
 
         {/* Auth page handles both sign-in and sign-up */}
         <Route path="/auth" element={<PortalAuth />} />
@@ -593,7 +604,10 @@ export function PortalRoutes() {
       <Route path="auth" element={<PortalAuth />} />
       {/* Register redirects to auth preserving query params for referrals */}
       <Route path="register" element={<PortalRegisterRedirect />} />
-      
+
+      {/* Product overview - public, shareable page (no auth required) */}
+      <Route path="product-overview" element={<ProductOverview />} />
+
       {/* Onboarding page - requires auth but not profile completion, wrapped in layout */}
       <Route path="onboarding" element={
         <PortalAuthGuard requireOnboarding={false}>
